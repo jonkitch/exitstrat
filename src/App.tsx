@@ -78,32 +78,53 @@ const AppTooltip = ({ text, children }: { text: string; children: React.ReactNod
   );
 };
 
-const InputField = ({ label, value, onChange, type = "number", prefix = "$", icon: Icon, tooltip }: any) => (
-  <div className="flex flex-col gap-1.5">
-    <div className="flex items-center justify-between">
-      <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500 flex items-center gap-1.5">
-        {Icon && <Icon size={12} />}
-        {label}
-      </label>
-      {tooltip && (
-        <AppTooltip text={tooltip}>
-          <Info size={12} className="text-zinc-400 hover:text-emerald-500 cursor-help transition-colors" />
-        </AppTooltip>
-      )}
+const InputField = ({ label, value, onChange, prefix = "$", icon: Icon, tooltip }: any) => {
+  const formatValue = (val: number) => {
+    if (val === 0) return "";
+    return new Intl.NumberFormat('en-US').format(val);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/,/g, '');
+    if (rawValue === "") {
+      onChange(0);
+      return;
+    }
+    const numericValue = parseInt(rawValue, 10);
+    if (!isNaN(numericValue)) {
+      onChange(numericValue);
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center justify-between">
+        <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500 flex items-center gap-1.5">
+          {Icon && <Icon size={12} />}
+          {label}
+        </label>
+        {tooltip && (
+          <AppTooltip text={tooltip}>
+            <Info size={12} className="text-zinc-400 hover:text-emerald-500 cursor-help transition-colors" />
+          </AppTooltip>
+        )}
+      </div>
+      <div className="relative group">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-emerald-500 transition-colors">
+          {prefix}
+        </span>
+        <input
+          type="text"
+          inputMode="numeric"
+          value={formatValue(value)}
+          onChange={handleChange}
+          placeholder="0"
+          className="w-full bg-white border border-zinc-200 rounded-lg py-2.5 pl-8 pr-4 text-zinc-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-medium"
+        />
+      </div>
     </div>
-    <div className="relative group">
-      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-emerald-500 transition-colors">
-        {prefix}
-      </span>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-white border border-zinc-200 rounded-lg py-2.5 pl-8 pr-4 text-zinc-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-medium"
-      />
-    </div>
-  </div>
-);
+  );
+};
 
 const StatCard = ({ label, value, subValue, color = "emerald" }: any) => (
   <div className="bg-white border border-zinc-100 p-4 rounded-xl shadow-sm">
@@ -337,7 +358,7 @@ Disclaimer: This report is for informational purposes only. Consult with a finan
                 <InputField 
                   label="Business Sale Price" 
                   value={salePrice} 
-                  onChange={(v: string) => setSalePrice(Number(v))} 
+                  onChange={setSalePrice} 
                   icon={DollarSign}
                   tooltip="The total gross amount you expect to receive from the sale of your business before any deductions."
                 />
@@ -365,7 +386,7 @@ Disclaimer: This report is for informational purposes only. Consult with a finan
                 <InputField 
                   label="Outstanding Business Debt" 
                   value={debt} 
-                  onChange={(v: string) => setDebt(Number(v))} 
+                  onChange={setDebt} 
                   icon={Briefcase}
                   tooltip="Any outstanding business loans, lines of credit, or liabilities that must be settled at the time of sale."
                 />
